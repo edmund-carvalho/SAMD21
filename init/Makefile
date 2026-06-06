@@ -33,7 +33,7 @@ $(TARGET).bin: $(TARGET).elf
 
 # Flash via OpenOCD + EDBG (CMSIS-DAP)
 flash: $(TARGET).elf
-	openocd -f openocd.cfg \
+	openocd -f samd21_xpro.cfg \
 	        -c "program $(TARGET).elf verify reset exit"
 
 clean:
