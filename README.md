@@ -50,7 +50,7 @@ SAMD21/
 ### Toolchain (Ubuntu)
 
 ```bash
-sudo apt install gcc-arm-none-eabi binutils-arm-none-eabi make
+sudo apt install gcc-arm-none-eabi binutils-arm-none-eabi make openocd
 ```
 
 Verify:
