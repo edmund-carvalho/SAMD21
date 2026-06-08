@@ -274,14 +274,10 @@ SERCOM3_REGS->USART_INT.SERCOM_DATA = (uint16_t)c;
 `_write` overrides the newlib syscall so `printf` routes through `uart_putc`:
 
 ```
-printf → newlib → _write → uart_putc → SERCOM3 → PA22 → EDBG → /dev/ttyACM0
+printf → newlib formatting → _write → uart_putc → SERCOM3 → PA22 → EDBG → /dev/ttyACM0
 ```
 
 `\n` is expanded to `\r\n` inside `_write` for terminal compatibility.
-
-`_sbrk` provides a minimal heap from `_end` (top of `.bss`) for newlib-nano's
-internal `printf` buffer. Five additional stubs (`_close`, `_fstat`,
-`_isatty`, `_lseek`, `_read`) suppress linker warnings from `nosys.specs`.
 
 ### Design decisions
 
@@ -292,6 +288,197 @@ internal `printf` buffer. Five additional stubs (`_close`, `_fstat`,
 | Blocking TX | Interrupt-driven | Sufficient for debug, avoids IRQ complexity |
 | `_write` retarget | Custom `uart_printf` | Standard `printf` works unchanged |
 | Syscall stubs in uart.c | Separate syscalls.c | Fewer files for a small project |
+
+---
+
+## newlib and libc setup
+
+### What is newlib
+
+newlib is a C standard library implementation written for embedded and
+bare-metal systems. It is maintained by Red Hat and shipped as the default
+libc with the `arm-none-eabi-gcc` toolchain. It provides the full C standard
+library - `printf`, `malloc`, `memcpy`, `string.h`, `math.h` and so on -
+but is designed to run without an operating system.
+
+`arm-none-eabi-gcc` ships two variants:
+
+| Variant | Spec file | Size | Notes |
+|---|---|---|---|
+| newlib | _(default)_ | Larger | Full printf including float (`%f`) |
+| newlib-nano | `--specs=nano.specs` | Smaller | Float printf disabled by default, add `-u _printf_float` to enable |
+
+This project uses **newlib-nano** (`--specs=nano.specs`) to keep flash usage
+low. Integer and string formatting is sufficient for debug output.
+
+### The syscall layer
+
+newlib is OS-agnostic by design. All operations that require OS services -
+file I/O, memory, process control - are delegated to a set of weak stub
+functions that the application must provide. These are called the
+**retarget layer** or **syscall stubs**.
+
+When newlib calls `printf`, it eventually calls `_write`. When `malloc` needs
+more heap memory, it calls `_sbrk`. When the program exits, it calls `_exit`.
+On a hosted system (Linux, Windows) the C runtime provides these. On bare
+metal, the developer provides them.
+
+The full list of syscalls newlib may reference:
+
+| Syscall | Called by | This project |
+|---|---|---|
+| `_write` | `printf`, `puts`, `putchar` | Implemented - routes to `uart_putc` |
+| `_sbrk` | `malloc`, `printf` internal buffer | Implemented - simple heap from `_end` |
+| `_close` | `fclose` | Stub - returns -1 |
+| `_fstat` | `fstat` | Stub - marks fd as character device |
+| `_isatty` | `printf` buffering decisions | Stub - returns 1 (is a terminal) |
+| `_lseek` | `fseek` | Stub - returns 0 |
+| `_read` | `scanf`, `fgets` | Stub - returns 0 |
+| `_exit` | `exit`, `abort` | Provided by `nosys.specs` |
+| `_kill` | `raise`, signal handling | Provided by `nosys.specs` |
+| `_getpid` | signal handling | Provided by `nosys.specs` |
+
+### specs files
+
+GCC specs files modify the link command. Two are used here:
+
+**`--specs=nano.specs`**
+Links against `libc_nano.a` instead of `libc.a`. Reduces flash usage
+significantly. The nano variant trades away float printf and some rarely used
+features for a much smaller footprint.
+
+**`--specs=nosys.specs`**
+Links against `libnosys.a` which provides weak stub implementations of all
+syscalls. Stubs return error codes and print a warning at link time. They
+exist solely so the link does not fail with undefined reference errors when
+newlib references a syscall that the application has not implemented.
+
+Any strong definition in the application object files overrides the weak
+nosys stubs. This project provides strong definitions for `_write`, `_sbrk`,
+`_close`, `_fstat`, `_isatty`, `_lseek`, and `_read` in `uart.c`, which
+silences all linker warnings.
+
+### Link order
+
+Library flags are kept separate from linker flags in the Makefile:
+
+```makefile
+LDFLAGS = $(CPU) -T$(LD) -Wl,--gc-sections -Wl,-Map=$(TARGET).map -nostartfiles
+LIBS    = --specs=nano.specs --specs=nosys.specs -lc -lgcc
+```
+
+The link command expands to:
+
+```
+arm-none-eabi-gcc [LDFLAGS] startup.o main.o uart.o [LIBS] -o led_toggle.elf
+```
+
+Object files must come before libraries. If `-lc` appears before the object
+files, the linker resolves `_write` from `nosys.specs` before seeing the
+strong definition in `uart.o`, and the retarget does not work. Keeping `LIBS`
+at the end of the link command guarantees correct resolution order.
+
+`-lgcc` provides GCC runtime helpers (`__aeabi_memcpy`, integer division
+routines, etc.) and must follow `-lc` since `-lc` may reference them.
+
+### `_sbrk` - heap for bare metal
+
+`malloc` (and by extension newlib-nano's `printf`) calls `_sbrk(n)` to
+request `n` additional bytes of heap. On a hosted OS the kernel handles this.
+On bare metal there is no kernel, so `_sbrk` must manage heap growth manually.
+
+The implementation tracks a pointer starting at `_end`:
+
+```c
+extern uint8_t _end;   /* linker symbol: top of .bss, bottom of free RAM */
+
+void *_sbrk(int incr)
+{
+    static uint8_t *heap = NULL;
+    uint8_t *prev;
+
+    if (heap == NULL) {
+        heap = &_end;   /* first call: initialise to end of .bss */
+    }
+    prev  = heap;       /* remember current break */
+    heap += incr;       /* advance break by requested amount */
+    return (void *)prev;
+}
+```
+
+Memory layout in RAM after reset:
+
+```
+0x20000000  ┌─────────────────┐
+            │   .data         │  initialised globals (copied from flash)
+            ├─────────────────┤
+            │   .bss          │  zero-initialised globals
+            ├─────────────────┤ ← _end  (heap starts here)
+            │   heap →        │  grows upward with each _sbrk call
+            │                 │
+            │   (free)        │
+            │                 │
+            │        ← stack  │  grows downward from top of RAM
+0x20008000  └─────────────────┘ ← _estack
+```
+
+`_end` is a symbol set inside the `.bss` section in the linker script:
+
+```ld
+.bss :
+{
+    _sbss = .;
+    *(.bss*)
+    *(COMMON)
+    . = ALIGN(4);
+    _ebss = .;
+    _end  = .;      /* must be inside the section - see Known issues #3 */
+} > RAM
+```
+
+This implementation has no guard against heap and stack colliding. For a
+small debug application this is acceptable. A production implementation would
+compare `heap + incr` against the current stack pointer and return `(void*)-1`
+with `errno = ENOMEM` if they would overlap.
+
+### `_write` - retargeting printf
+
+newlib calls `_write(fd, buf, len)` for all character output. `fd` is the
+file descriptor (1 = stdout, 2 = stderr). The implementation ignores `fd`
+since all output goes to the UART:
+
+```c
+ssize_t _write(int fd, const void *buf, size_t len)
+{
+    const uint8_t *p = (const uint8_t *)buf;
+    (void)fd;
+    for (size_t i = 0; i < len; i++) {
+        if (p[i] == '\n') {
+            uart_putc('\r');    /* expand \n to \r\n for terminal */
+        }
+        uart_putc(p[i]);
+    }
+    return (ssize_t)len;
+}
+```
+
+Returning `len` tells newlib all bytes were written successfully. Returning a
+smaller value or `-1` would cause newlib to retry or set `errno`.
+
+The complete call chain from `printf("hello\n")` to the UART shift register:
+
+```
+printf("hello\n")
+  └─ vfprintf           newlib: format string processing
+       └─ __ssprint_r   newlib: flush internal buffer
+            └─ _write_r newlib: reentrant wrapper
+                 └─ _write(1, "hello\r\n", 8)   ← our implementation
+                      └─ uart_putc('h')
+                      └─ uart_putc('e')
+                      └─ ...
+                           └─ poll DRE flag
+                                └─ write SERCOM3_DATA
+```
 
 ---
 
