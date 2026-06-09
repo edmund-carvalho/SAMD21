@@ -125,7 +125,7 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
     for (;;);
 }
 
-//EC why required ?
+
 void configure_system_tick(void)
 {
     // Reload value for 1ms tick (8 MHz / 1000 = 8000)
