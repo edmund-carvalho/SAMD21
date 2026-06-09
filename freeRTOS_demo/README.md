@@ -70,6 +70,9 @@ freeRTOS_demo/
    ```bash
    openocd -f samd21J18_OOCD.cfg -c "program your_firmware.elf verify reset exit"
    ```
+6. Added `#define xPortSysTickHandler SysTick_Handler` to `FreeRTOSConfig.h` to connect SysTick to the FreeRTOS tick handler.
+7. Added `/DISCARD/` section in the linker script to suppress `.ARM.exidx`, `.init`, `.fini`.
+8. Implemented `configure_system_tick()` in `main.c` to set up SysTick before starting the scheduler.
 
 ## Application Behaviour
 
@@ -100,37 +103,6 @@ uptime: 8025 ms  heap free: 13336 B
 
 Note: The first `heap: 0 B` is printed before any FreeRTOS allocations – it is harmless; subsequent calls show the correct free heap size.
 
-## Development History (from a.log)
-
-The project was built step by step:
-
-```text
-1924  mkdir freeRTOS_demo
-1925  cd freeRTOS_demo/
-1927  git clone --depth=1 https://github.com/FreeRTOS/FreeRTOS-Kernel.git /tmp/fk
-1928  mkdir -p freertos-kernel/portable/GCC/ARM_CM0
-1929  mkdir -p freertos-kernel/portable/MemMang
-1930  mkdir -p freertos-kernel/include
-1931  cp /tmp/fk/tasks.c                              freertos-kernel/
-1932  cp /tmp/fk/queue.c                              freertos-kernel/
-1933  cp /tmp/fk/list.c                               freertos-kernel/
-1934  cp /tmp/fk/timers.c                             freertos-kernel/
-1935  cp /tmp/fk/include/*.h                          freertos-kernel/include/
-1936  cp /tmp/fk/portable/GCC/ARM_CM0/*              freertos-kernel/portable/GCC/ARM_CM0/
-1937  cp /tmp/fk/portable/MemMang/heap_4.c           freertos-kernel/portable/MemMang/
-1938  rm -rf /tmp/fk
-1940  cp ../uart/startup.c .
-1943  cp ../uart/samd21J18_OOCD.cfg .
-1944  cp ../uart/samd21j18a.ld .
-1959  cp ../uart/uart.c .
-1960  cp ../uart/uart.h .
-```
-
-Additional modifications:
-
-- Added `#define xPortSysTickHandler SysTick_Handler` to `FreeRTOSConfig.h` to connect SysTick to the FreeRTOS tick handler.
-- Added `/DISCARD/` section in the linker script to suppress `.ARM.exidx`, `.init`, `.fini`.
-- Implemented `configure_system_tick()` in `main.c` to set up SysTick before starting the scheduler.
 
 ## Important Notes
 
