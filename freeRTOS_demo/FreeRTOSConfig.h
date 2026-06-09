@@ -10,10 +10,7 @@
  * --------------------------------------------------------------- */
 
 #define configENABLE_MPU 0
-//EC wy these required ?
-#define configKERNEL_INTERRUPT_PRIORITY    ( 0xFF )  /* Lowest priority */
-#define configMAX_SYSCALL_INTERRUPT_PRIORITY ( 0x80 )  /* Mid priority */
-#define xPortSysTickHandler SysTick_Handler  // alias, though we now use xTaskIncrementTick directly
+#define xPortSysTickHandler SysTick_Handler
 
 /* ---- Scheduler ------------------------------------------------ */
 #define configUSE_PREEMPTION                    1
