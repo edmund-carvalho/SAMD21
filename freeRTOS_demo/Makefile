@@ -14,7 +14,6 @@ RTOS_MEM_DIR = $(RTOS_DIR)/portable/MemMang
 CMSIS_DIR = ../cmsis
 DFP_DIR = ../Microchip.SAMD21_DFP.3.8.270/samd21a/include
 
-# Source files (from your freeRTOS directory)
 APP_SRC = main.c \
           uart.c \
           startup.c
