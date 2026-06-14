@@ -24,7 +24,7 @@ void wdt_arm(void)
     while (GCLK_REGS->GCLK_STATUS & GCLK_STATUS_SYNCBUSY_Msk);
 
     /* Step 3 - Set period PER=14 (500 ms), no window mode */
-    WDT_REGS->WDT_CONFIG = WDT_CONFIG_PER_CYC16384;
+    WDT_REGS->WDT_CONFIG = WDT_CONFIG_PER_16K;
     while (WDT_REGS->WDT_STATUS & WDT_STATUS_SYNCBUSY_Msk);
 
     /* Step 4 - Enable (ALWAYSON not set - app can disable) */
