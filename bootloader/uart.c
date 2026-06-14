@@ -4,7 +4,7 @@
 #include "uart.h"
 
 /*
- * uart.c — SERCOM3 USART init + write, printf retarget
+ * uart.c - SERCOM3 USART init + write, printf retarget
  *
  * Clock tree after uart_init():
  *   OSC8M PRESC=0 → 8 MHz
@@ -17,7 +17,7 @@
 #define SERCOM3_BAUD_115200     50437U
 
 /* ---------------------------------------------------------------
- * Step 1 — OSC8M: remove reset prescaler, run at 8 MHz
+ * Step 1 - OSC8M: remove reset prescaler, run at 8 MHz
  * --------------------------------------------------------------- */
 static void clock_init(void)
 {
@@ -45,7 +45,7 @@ static void clock_init(void)
 }
 
 /* ---------------------------------------------------------------
- * Step 2 — PM: enable SERCOM3 APB clock
+ * Step 2 - PM: enable SERCOM3 APB clock
  * --------------------------------------------------------------- */
 static void pm_init(void)
 {
@@ -53,7 +53,7 @@ static void pm_init(void)
 }
 
 /* ---------------------------------------------------------------
- * Step 3 — PORT: mux PA22/PA23 to SERCOM3 function C
+ * Step 3 - PORT: mux PA22/PA23 to SERCOM3 function C
  *
  *   PA22 = SERCOM3/PAD[0] = TX  (even pin → PMUX[11] lower nibble)
  *   PA23 = SERCOM3/PAD[1] = RX  (odd  pin → PMUX[11] upper nibble)
@@ -72,11 +72,11 @@ static void port_init(void)
 }
 
 /* ---------------------------------------------------------------
- * Step 4 — SERCOM3: configure and enable USART 115200 8N1
+ * Step 4 - SERCOM3: configure and enable USART 115200 8N1
  * --------------------------------------------------------------- */
 static void sercom_init(void)
 {
-    /* Software reset — clears all registers */
+    /* Software reset - clears all registers */
     SERCOM3_REGS->USART_INT.SERCOM_CTRLA = SERCOM_USART_INT_CTRLA_SWRST_Msk;
     while (SERCOM3_REGS->USART_INT.SERCOM_SYNCBUSY &
            SERCOM_USART_INT_SYNCBUSY_SWRST_Msk);
@@ -139,7 +139,7 @@ void uart_puts(const char *s)
 }
 
 /* ---------------------------------------------------------------
- * _write — retarget printf to UART
+ * _write - retarget printf to UART
  *   Called by newlib for every printf/puts/putchar.
  *   '\n' expanded to '\r\n' for terminal compatibility.
  * --------------------------------------------------------------- */
@@ -157,9 +157,9 @@ ssize_t _write(int fd, const void *buf, size_t len)
 }
 
 /* ---------------------------------------------------------------
- * _sbrk — minimal heap for newlib printf internal buffers
+ * _sbrk - minimal heap for newlib printf internal buffers
  * --------------------------------------------------------------- */
-extern uint8_t _end;    /* defined by linker script — end of .bss */
+extern uint8_t _end;    /* defined by linker script - end of .bss */
 
 void *_sbrk(int incr)
 {
@@ -175,7 +175,7 @@ void *_sbrk(int incr)
 }
 
 /* ---------------------------------------------------------------
- * Minimal syscall stubs — suppress nosys.specs linker warnings.
+ * Minimal syscall stubs - suppress nosys.specs linker warnings.
  * None of these are called in this application.
  * --------------------------------------------------------------- */
 #include <sys/stat.h>

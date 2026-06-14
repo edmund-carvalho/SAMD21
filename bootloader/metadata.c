@@ -3,7 +3,7 @@
 #include "nvmctrl.h"
 
 /* ---------------------------------------------------------------
- * CRC32 — ISO 3309 / Ethernet poly 0xEDB88320, bit-by-bit
+ * CRC32 - ISO 3309 / Ethernet poly 0xEDB88320, bit-by-bit
  *
  * Used for metadata struct integrity and image TLV verification.
  *

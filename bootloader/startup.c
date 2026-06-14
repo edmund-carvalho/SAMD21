@@ -14,14 +14,14 @@ extern int main(void);
 void Reset_Handler(void);
 void Default_Handler(void);
 
-/* Weak aliases — override by defining the same function in user code */
+/* Weak aliases - override by defining the same function in user code */
 void NMI_Handler(void)       __attribute__((weak, alias("Default_Handler")));
 void HardFault_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void SVC_Handler(void)       __attribute__((weak, alias("Default_Handler")));
 void PendSV_Handler(void)    __attribute__((weak, alias("Default_Handler")));
 void SysTick_Handler(void)   __attribute__((weak, alias("Default_Handler")));
 
-/* Cortex-M0+ vector table — placed at 0x00000000 by linker script */
+/* Cortex-M0+ vector table - placed at 0x00000000 by linker script */
 __attribute__((section(".vectors"), used))
 const void *vectors[] = {
     (void *)&_estack,           /* 0:  Initial stack pointer       */

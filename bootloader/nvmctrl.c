@@ -6,13 +6,13 @@
  * Internal helpers
  * --------------------------------------------------------------- */
 
-/* NVMCTRL command execution key — must accompany every command */
+/* NVMCTRL command execution key - must accompany every command */
 #define NVM_CMDEX_KEY   0xA5U
 
 /* Wait for NVM to finish previous operation */
 static nvm_err_t nvm_wait_ready(void)
 {
-    /* Simple spin-wait — bootloader context, no RTOS */
+    /* Simple spin-wait - bootloader context, no RTOS */
     uint32_t timeout = 100000UL;
     while (!(NVMCTRL_REGS->NVMCTRL_INTFLAG & NVMCTRL_INTFLAG_READY_Msk)) {
         if (--timeout == 0) {
@@ -49,12 +49,12 @@ nvm_err_t nvm_erase_row(uint32_t addr)
         return NVM_ERR_ALIGN;
     }
 
-    /* Range check — do not erase past end of flash */
+    /* Range check - do not erase past end of flash */
     if (addr >= NVM_FLASH_END) {
         return NVM_ERR_RANGE;
     }
 
-    /* Protection check — refuse to erase bootloader region */
+    /* Protection check - refuse to erase bootloader region */
     if (addr < NVM_SLOT_A_START) {
         return NVM_ERR_PROTECTED;
     }
@@ -101,7 +101,7 @@ nvm_err_t nvm_write_page(uint32_t addr, const uint8_t *buf)
 
     /* Step 2: write 16 × uint32_t to the target address.
      * These writes go into the page buffer, not flash yet.
-     * Must be 32-bit writes — 8/16-bit writes to NVM are undefined. */
+     * Must be 32-bit writes - 8/16-bit writes to NVM are undefined. */
     dst = (volatile uint32_t *)addr;
     for (i = 0; i < NVM_PAGE_SIZE / 4U; i++) {
         uint32_t word;
@@ -117,7 +117,7 @@ nvm_err_t nvm_write_page(uint32_t addr, const uint8_t *buf)
 
 void nvm_read(uint32_t addr, uint8_t *buf, size_t n)
 {
-    /* Flash is memory-mapped — direct read, no NVMCTRL involved */
+    /* Flash is memory-mapped - direct read, no NVMCTRL involved */
     memcpy(buf, (const void *)addr, n);
 }
 

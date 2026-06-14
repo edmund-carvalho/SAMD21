@@ -5,10 +5,10 @@
 #include "confirm.h"
 
 /*
- * app2_main.c — v1.0.123
+ * app2_main.c - v1.0.123
  *
  * Update build for slot B. Identical behaviour to app1, different
- * version number — used to demonstrate swap_app between slots.
+ * version number - used to demonstrate swap_app between slots.
  *
  * Build and flash:
  *   make flash_b VERSION=1.0.123
@@ -28,19 +28,19 @@ int main(void)
     uart_init();
     gpio_init();
 
-    /* LED0 ON — signal: entered main(), WDT armed by bootloader */
+    /* LED0 ON - signal: entered main(), WDT armed by bootloader */
     PORT_REGS->GROUP[1].PORT_OUTCLR = (1UL << LED0_PIN);
 
-    printf("APP v1.0.123 — booted OK\r\n");
+    printf("APP v1.0.123 - booted OK\r\n");
 
-    /* Confirm within 500ms — disarms WDT, sets slot VALID, LED0 OFF */
+    /* Confirm within 500ms - disarms WDT, sets slot VALID, LED0 OFF */
     confirm_boot();
 
-    printf("APP v1.0.123 — confirmed, running\r\n");
+    printf("APP v1.0.123 - confirmed, running\r\n");
 
     uint32_t uptime = 0;
     for (;;) {
-        printf("APP v1.0.123 — uptime %lu s\r\n", (unsigned long)uptime++);
+        printf("APP v1.0.123 - uptime %lu s\r\n", (unsigned long)uptime++);
         for (volatile uint32_t i = 0; i < 8000000U; i++);  /* ~1s @ 8MHz */
     }
 

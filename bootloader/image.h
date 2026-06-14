@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 /*
- * image.h — MCUboot-compatible image format
+ * image.h - MCUboot-compatible image format
  *
  * Standard MCUboot 32-byte header is prepended to every application binary.
  * A TLV (Type-Length-Value) trailer is appended after the image data.
@@ -42,7 +42,7 @@
 /* TLV type codes */
 #define IMAGE_TLV_CRC32         0x08U   /* CRC32 over header+image+tlv_info
                                          * TODO: replace with IMAGE_TLV_SHA256 */
-#define IMAGE_TLV_SHA256        0x10U   /* SHA256 — standard MCUboot type,
+#define IMAGE_TLV_SHA256        0x10U   /* SHA256 - standard MCUboot type,
                                          * 32-byte digest, use when signing
                                          * is added (see TODO above)         */
 
@@ -69,7 +69,7 @@ typedef struct {
     uint32_t        ih_flags;            /* IMAGE_F_* flags               */
     image_version_t ih_ver;              /* version embedded in binary    */
     uint32_t        _pad1;               /* reserved                      */
-} __attribute__((packed)) image_header_t; /* 32 bytes — compile-checked below */
+} __attribute__((packed)) image_header_t; /* 32 bytes - compile-checked below */
 
 typedef struct {
     uint16_t it_magic;   /* IMAGE_TLV_INFO_MAGIC = 0x6907              */
@@ -93,9 +93,9 @@ typedef char tlv_size_check  [(sizeof(image_tlv_t)      ==  4U) ? 1 : -1];
  * --------------------------------------------------------------- */
 
 /*
- * image_header_valid — lightweight sanity check on the header.
+ * image_header_valid - lightweight sanity check on the header.
  * Checks magic, hdr_size, img_size range, and NON_BOOTABLE flag.
- * Does NOT verify the CRC32 — call image_verify_crc32() for that.
+ * Does NOT verify the CRC32 - call image_verify_crc32() for that.
  *
  * slot_start : byte address of the slot (e.g. NVM_SLOT_A_START)
  * slot_size  : maximum bytes available in the slot
@@ -104,10 +104,10 @@ typedef char tlv_size_check  [(sizeof(image_tlv_t)      ==  4U) ? 1 : -1];
 int image_header_valid(uint32_t slot_start, uint32_t slot_size);
 
 /*
- * image_verify_crc32 — verify TLV CRC32 over header + image + tlv_info.
+ * image_verify_crc32 - verify TLV CRC32 over header + image + tlv_info.
  *
  * Only called for SLOT_PENDING state (first boot after flash).
- * SLOT_VALID images skip this — they were already verified on first boot.
+ * SLOT_VALID images skip this - they were already verified on first boot.
  *
  * CRC32 covers (contiguous in flash):
  *   header (ih_hdr_size bytes)
@@ -123,7 +123,7 @@ int image_header_valid(uint32_t slot_start, uint32_t slot_size);
 int image_verify_crc32(uint32_t slot_start);
 
 /*
- * image_get_header — return pointer to header at slot_start.
+ * image_get_header - return pointer to header at slot_start.
  * Caller must call image_header_valid() first.
  */
 static inline const image_header_t *image_get_header(uint32_t slot_start)
@@ -132,7 +132,7 @@ static inline const image_header_t *image_get_header(uint32_t slot_start)
 }
 
 /*
- * image_vtor — return the vector table address inside the image.
+ * image_vtor - return the vector table address inside the image.
  * This is slot_start + ih_hdr_size (skip the MCUboot header).
  */
 static inline uint32_t image_vtor(uint32_t slot_start)

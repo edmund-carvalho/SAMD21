@@ -5,7 +5,7 @@
 #include "confirm.h"
 
 /*
- * app1_main.c — v1.0.0
+ * app1_main.c - v1.0.0
  *
  * Minimal good application. Prints version, confirms boot within
  * the 500ms WDT window, then loops printing uptime.
@@ -27,19 +27,19 @@ int main(void)
     uart_init();
     gpio_init();
 
-    /* LED0 ON — signal: entered main(), WDT armed by bootloader */
+    /* LED0 ON - signal: entered main(), WDT armed by bootloader */
     PORT_REGS->GROUP[1].PORT_OUTCLR = (1UL << LED0_PIN);
 
-    printf("APP v1.0.0 — booted OK\r\n");
+    printf("APP v1.0.0 - booted OK\r\n");
 
-    /* Confirm within 500ms — disarms WDT, sets slot VALID, LED0 OFF */
+    /* Confirm within 500ms - disarms WDT, sets slot VALID, LED0 OFF */
     confirm_boot();
 
-    printf("APP v1.0.0 — confirmed, running\r\n");
+    printf("APP v1.0.0 - confirmed, running\r\n");
 
     uint32_t uptime = 0;
     for (;;) {
-        printf("APP v1.0.0 — uptime %lu s\r\n", (unsigned long)uptime++);
+        printf("APP v1.0.0 - uptime %lu s\r\n", (unsigned long)uptime++);
         for (volatile uint32_t i = 0; i < 8000000U; i++);  /* ~1s @ 8MHz */
     }
 

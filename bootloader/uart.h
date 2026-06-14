@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 /*
- * uart.h — SERCOM3 USART, 115200 8N1
+ * uart.h - SERCOM3 USART, 115200 8N1
  *
  * Hardware (SAM D21 Xplained Pro):
  *   PA22  SERCOM3/PAD[0]  TX → EDBG RX → /dev/ttyACM1

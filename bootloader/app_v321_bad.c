@@ -5,7 +5,7 @@
 #include "confirm.h"
 
 /*
- * app3_main.c — v3.2.1 — INTENTIONALLY BAD
+ * app3_main.c - v3.2.1 - INTENTIONALLY BAD
  *
  * Prints its version, turns LED0 on, then hangs forever WITHOUT
  * calling confirm_boot(). The 500ms WDT (armed by the bootloader
@@ -25,19 +25,19 @@
  *
  * Expected UART log across resets:
  *   BL: slot B v3.2.1 attempt 1/3
- *   APP v3.2.1 — booted, simulating hang (no confirm_boot)
+ *   APP v3.2.1 - booted, simulating hang (no confirm_boot)
  *   (500ms silence, then reset)
  *   BL: slot B v3.2.1 attempt 2/3
- *   APP v3.2.1 — booted, simulating hang (no confirm_boot)
+ *   APP v3.2.1 - booted, simulating hang (no confirm_boot)
  *   (500ms silence, then reset)
  *   BL: slot B v3.2.1 attempt 3/3
- *   APP v3.2.1 — booted, simulating hang (no confirm_boot)
+ *   APP v3.2.1 - booted, simulating hang (no confirm_boot)
  *   (500ms silence, then reset)
  *   BL: slot B max attempts -- INVALID
  *   BL: fallback slot A
  *   BL: slot A v1.0.0 attempt 1/3
- *   APP v1.0.0 — booted OK
- *   APP v1.0.0 — confirmed, running
+ *   APP v1.0.0 - booted OK
+ *   APP v1.0.0 - confirmed, running
  */
 
 #define LED0_PIN    30U     /* PB30, active low */
@@ -53,14 +53,14 @@ int main(void)
     uart_init();
     gpio_init();
 
-    /* LED0 ON — signal: entered main(), WDT armed by bootloader */
+    /* LED0 ON - signal: entered main(), WDT armed by bootloader */
     PORT_REGS->GROUP[1].PORT_OUTCLR = (1UL << LED0_PIN);
 
-    printf("APP v3.2.1 — booted, simulating hang (no confirm_boot)\r\n");
+    printf("APP v3.2.1 - booted, simulating hang (no confirm_boot)\r\n");
 
     /* BUG: confirm_boot() intentionally NOT called.
      * WDT armed by bootloader (500ms, PER=14) will fire and reset
-     * the chip. LED0 stays ON the whole time — visual indicator
+     * the chip. LED0 stays ON the whole time - visual indicator
      * that this app never reached the confirmed state. */
 
     for (;;) {

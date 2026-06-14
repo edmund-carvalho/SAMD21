@@ -2,7 +2,7 @@
 #define CONFIRM_H
 
 /*
- * confirm.h — application-side boot confirmation
+ * confirm.h - application-side boot confirmation
  *
  * Include this header in every application project.
  * Call confirm_boot() after successful hardware init and self-test,
